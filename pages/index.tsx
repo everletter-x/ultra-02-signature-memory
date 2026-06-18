@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Head from "next/head";
-import { useConfigLoader } from "../../shared";
+import { useConfigLoader } from "../shared";
 
 interface Section {
   type: string;
