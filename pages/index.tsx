@@ -423,6 +423,12 @@ export default function Home() {
           </motion.div>
         </section>
 
+        {/* Pricing Badge */}
+        <div className="fixed bottom-24 right-8 z-50 bg-dark-luxury/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-gold-accent/30">
+          <p className="text-elegant-white/60 text-xs mb-1">Ultra Premium</p>
+          <p className="text-2xl font-bold text-gold-accent">Rp 110K</p>
+        </div>
+
         {/* Music Button */}
         {config.music && (
           <motion.button
