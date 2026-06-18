@@ -1,0 +1,20 @@
+{
+  "recipient": "Nabila",
+  "sender": "Rizky",
+  "title": "Halaman Ini Dibuat Khusus untukmu",
+  "message": "Halaman ini dibuat khusus untukmu.\n\nSemua detailnya menyesuaikan cerita kalian.\n\nKarena beberapa perasaan memang terlalu penting untuk dibuat biasa saja.",
+  "photos": ["photo1.jpg", "photo2.jpg", "photo3.jpg", "photo4.jpg"],
+  "theme": "gold-accent",
+  "music": "song.mp3",
+  "musicTitle": "我们的歌",
+  "template": "ultra-02",
+  "sections": [
+    {"type": "hero", "title": "Untuk Nabila", "subtitle": "Dari Rizky"},
+    {"type": "story", "title": "Cerita Kita", "text": "Setiap perjalanan dimulai dari satu langkah kecil..."},
+    {"type": "photos", "title": "Moments"},
+    {"type": "message", "title": "Pesan Untukmu", "text": "Kamu adalah alasan aku tersenyum setiap hari."},
+    {"type": "closing", "title": "Selamanya"}
+  ],
+  "captions": ["Langkah pertama", "Tawa kita", "Pelukan hangat", "Selamanya bersama"],
+  "closing": "Dengan cinta, selamanya. - Rizky"
+}
