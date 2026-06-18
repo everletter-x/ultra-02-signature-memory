@@ -16,5 +16,37 @@
     {"type": "closing", "title": ""}
   ],
   "captions": [],
-  "closing": ""
+  "closing": "",
+  "_example": {
+    "recipient": "Kamu",
+    "sender": "Aku",
+    "title": "Signature Memory: Kenangan Abadi Kita",
+    "message": "Ini bukan sekadar hadiah, tapi monumen cinta kita yang tak lekang oleh waktu.",
+    "sections": [
+      {
+        "type": "hero",
+        "title": "Untuk Kamu, Segalanya",
+        "subtitle": "Cerita cinta kita dimulai dari satu tatapan mata"
+      },
+      {
+        "type": "story",
+        "title": "Perjalanan Kita",
+        "text": "Dari pertemuan pertama hingga hari ini, setiap langkah yang kita ambil bersama adalah bukti bahwa cinta sejati itu nyata. Kamu mengajarkanku tentang keberanian untuk mencinta tanpa batas."
+      },
+      {
+        "type": "photos",
+        "title": "Momen-Momen Berharga"
+      },
+      {
+        "type": "message",
+        "title": "Janji Dari Hati",
+        "text": "Aku berjanji akan terus mencintaimu dengan cara yang sama seperti pertama kali aku jatuh cinta padamu. Selamanya."
+      },
+      {
+        "type": "closing",
+        "title": "Cinta Kita, Abadi"
+      }
+    ],
+    "closing": "Dengan segala cinta yang ku miliki, untukmu selamanya."
+  }
 }
