@@ -1,456 +1,662 @@
-import { useState, useEffect, useRef, memo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import Head from "next/head";
-import { useConfigLoader } from "../shared";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import BaseLayout from '../components/BaseLayout';
+import { MusicPlayer } from '../shared/MusicPlayer';
 
-interface Section {
-  type: string;
-  title?: string;
-  subtitle?: string;
-  text?: string;
+/* ── Config types ── */
+interface LetterConfig {
+  theme?: string;
+  recipientName?: string;
+  senderName?: string;
+  memories?: {
+    title?: string;
+    date?: string;
+    description?: string;
+    photo?: string;
+  }[];
+  message?: string[];
+  audioSrc?: string;
+  autoplayAudio?: boolean;
 }
 
-interface Config {
-  recipient: string;
-  sender: string;
-  title: string;
-  message: string;
-  photos: string[];
-  theme: string;
-  music: string;
-  musicTitle: string;
-  template: string;
-  sections: Section[];
-  captions: string[];
-  closing: string;
-}
+/* ── Constellation Particles (unique to Signature) ── */
+function ConstellationField({ count = 16 }: { count?: number }) {
+  const points = useMemo(() => Array.from({ length: count }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: Math.random() * 3 + 1,
+    duration: Math.random() * 8 + 6,
+    delay: Math.random() * 5,
+  })), [count]);
 
-const sectionVariants = {
-  hidden: { opacity: 0, y: 60, filter: "blur(8px)" },
-  visible: {
-    opacity: 1,
-    y: 0,
-    filter: "blur(0px)",
-    transition: { duration: 0.9, ease: "easeOut" }
-  }
-};
+  // Connect nearby points with lines
+  const lines = useMemo(() => {
+    const result: { x1: string; y1: string; x2: string; y2: string; opacity: number }[] = [];
+    for (let i = 0; i < points.length; i++) {
+      for (let j = i + 1; j < points.length; j++) {
+        const dx = points[i].x - points[j].x;
+        const dy = points[i].y - points[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 25) {
+          result.push({
+            x1: `${points[i].x}%`,
+            y1: `${points[i].y}%`,
+            x2: `${points[j].x}%`,
+            y2: `${points[j].y}%`,
+            opacity: 1 - dist / 25,
+          });
+        }
+      }
+    }
+    return result;
+  }, [points]);
 
-const scaleVariants = {
-  hidden: { opacity: 0, scale: 0.85 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: { duration: 1.0, ease: [0.16, 1, 0.3, 1] }
-  }
-};
-
-function showToast(message: string) {
-  const toast = document.createElement('div');
-  toast.textContent = message;
-  toast.className = 'fixed top-8 left-1/2 -translate-x-1/2 z-[100] bg-dark-luxury/90 backdrop-blur-sm text-elegant-white px-6 py-3 rounded-full shadow-lg border border-gold-accent/30 text-sm';
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
-}
-
-const HeroSection = memo(function HeroSection({ section }: { section: Section }) {
   return (
-    <motion.section
-      variants={scaleVariants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-100px" }}
-      className="relative flex items-center justify-center min-h-screen px-6"
-    >
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="w-[600px] h-[600px] rounded-full bg-gold-accent/5 blur-[120px]" />
-      </div>
-      <div className="text-center z-10">
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, delay: 0.2 }}
-          className="text-gold-accent/70 tracking-[0.3em] uppercase text-sm mb-6 font-light"
-        >
-          {section.subtitle}
-        </motion.p>
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.9, delay: 0.4 }}
-          className="text-6xl md:text-8xl font-light text-elegant-white leading-tight"
-        >
-          {section.title}
-        </motion.h1>
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+      {/* Connection lines */}
+      <svg className="absolute inset-0 w-full h-full">
+        {lines.map((line, i) => (
+          <motion.line
+            key={`line-${i}`}
+            x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2}
+            stroke="rgb(var(--primary))"
+            strokeWidth="0.5"
+            strokeOpacity={line.opacity * 0.1}
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 2, delay: i * 0.1, ease: 'easeInOut' }}
+          />
+        ))}
+      </svg>
+      {/* Star points */}
+      {points.map((p) => (
         <motion.div
-          initial={{ scaleX: 0 }}
-          whileInView={{ scaleX: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1.2, delay: 0.8 }}
-          className="h-px w-32 mx-auto mt-10 bg-gradient-to-r from-transparent via-gold-accent to-transparent"
+          key={p.id}
+          className="absolute rounded-full"
+          style={{
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+            width: p.size,
+            height: p.size,
+            backgroundColor: 'rgb(var(--primary))',
+            boxShadow: `0 0 ${p.size * 3}px rgba(var(--primary), 0.3)`,
+          }}
+          animate={{
+            opacity: [0, 0.8, 0.3, 0.8, 0],
+            scale: [0.5, 1.2, 0.7, 1, 0.5],
+          }}
+          transition={{
+            duration: p.duration,
+            repeat: Infinity,
+            delay: p.delay,
+            ease: 'easeInOut',
+          }}
         />
-      </div>
-    </motion.section>
+      ))}
+    </div>
   );
-});
+}
 
-const StorySection = memo(function StorySection({ section }: { section: Section }) {
+/* ── Gold Particle Field ── */
+function GoldParticleField({ count = 16 }: { count?: number }) {
+  const particles = useMemo(() => Array.from({ length: count }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: Math.random() * 3 + 1,
+    duration: Math.random() * 8 + 6,
+    delay: Math.random() * 5,
+  })), [count]);
+
   return (
-    <motion.section
-      variants={sectionVariants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-80px" }}
-      className="flex items-center justify-center min-h-screen px-6 md:px-20"
-    >
-      <div className="max-w-2xl text-center">
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-gold-accent/60 tracking-[0.25em] uppercase text-xs mb-6"
-        >
-          {section.title}
-        </motion.p>
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="text-2xl md:text-3xl font-light text-elegant-white/90 leading-relaxed italic"
-        >
-          &ldquo;{section.text}&rdquo;
-        </motion.p>
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+      {particles.map((p) => (
         <motion.div
-          initial={{ scaleX: 0 }}
-          whileInView={{ scaleX: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1.0, delay: 0.7 }}
-          className="h-px w-20 mx-auto mt-10 bg-gold-accent/30"
+          key={p.id}
+          className="absolute rounded-full"
+          style={{
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+            width: p.size,
+            height: p.size,
+            backgroundColor: 'rgba(var(--primary), 0.1)',
+            boxShadow: `0 0 ${p.size * 2}px rgba(var(--primary), 0.06)`,
+          }}
+          animate={{
+            y: [0, -100, 0],
+            opacity: [0, 0.5, 0],
+            scale: [0.6, 1, 0.6],
+          }}
+          transition={{
+            duration: p.duration,
+            repeat: Infinity,
+            delay: p.delay,
+            ease: 'easeInOut',
+          }}
         />
-      </div>
-    </motion.section>
+      ))}
+    </div>
   );
-});
+}
 
-function PhotosSection({
-  section,
-  photos,
-  captions
-}: {
-  section: Section;
-  photos: string[];
-  captions: string[];
-}) {
+/* ── Scroll Progress ── */
+function ScrollProgress() {
+  const { scrollYProgress } = useScroll();
   return (
-    <motion.section
-      variants={sectionVariants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-80px" }}
-      className="min-h-screen px-6 md:px-20 py-32 flex flex-col items-center justify-center"
+    <motion.div
+      className="fixed top-0 left-0 right-0 h-[2px] z-50 origin-left"
+      style={{
+        scaleX: scrollYProgress,
+        background: 'linear-gradient(90deg, rgb(var(--primary)), rgb(var(--primary-dim)))',
+      }}
+    />
+  );
+}
+
+/* ── 3D Parallax Section Wrapper ── */
+function ParallaxSection({ children, speed = 0.5, className = "" }: { children: React.ReactNode; speed?: number; className?: string }) {
+  const { scrollYProgress } = useScroll();
+  const y = useTransform(scrollYProgress, [0, 1], [80 * speed, -80 * speed]);
+  const rotateX = useTransform(scrollYProgress, [0, 0.5, 1], [1.5, 0, -1.5]);
+  return (
+    <motion.div className={className} style={{ y, rotateX, transformPerspective: 1200, transformStyle: "preserve-3d" }}>
+      {children}
+    </motion.div>
+  );
+}
+
+/* ── Cinematic Loading ── */
+function LoadingScreen() {
+  return (
+    <motion.div
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center"
+      style={{ backgroundColor: 'rgb(var(--bg-start))' }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 1, ease: [0.25, 0.1, 0.25, 1] }}
     >
-      <motion.p
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        className="text-gold-accent/60 tracking-[0.25em] uppercase text-xs mb-16"
+      <motion.div
+        className="relative w-16 h-16 mb-8"
+        animate={{ rotate: 45 }}
+        transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
       >
-        {section.title}
+        <div
+          className="absolute inset-1 border"
+          style={{
+            borderColor: 'rgb(var(--primary))',
+            boxShadow: '0 0 20px rgba(var(--primary), 0.15)',
+          }}
+        />
+        <div
+          className="absolute inset-3 border"
+          style={{ borderColor: 'rgba(var(--primary), 0.2)', transform: 'rotate(22.5deg)' }}
+        />
+      </motion.div>
+
+      <motion.p
+        className="text-[10px] tracking-[0.5em] uppercase"
+        style={{ color: 'rgb(var(--primary-dim))' }}
+        initial={{ opacity: 0, letterSpacing: '0.8em' }}
+        animate={{ opacity: 1, letterSpacing: '0.5em' }}
+        transition={{ delay: 0.4, duration: 0.8 }}
+      >
+        Signature Memory
       </motion.p>
-      <div className="grid grid-cols-2 gap-6 max-w-4xl w-full">
-        {photos.map((photo, i) => (
+
+      <motion.div
+        className="mt-6 h-[1px] w-24 origin-center"
+        style={{ backgroundColor: 'rgba(var(--primary), 0.2)' }}
+      >
+        <motion.div
+          className="h-full"
+          style={{ backgroundColor: 'rgb(var(--primary))' }}
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ duration: 2, ease: [0.25, 0.1, 0.25, 1] }}
+        />
+      </motion.div>
+    </motion.div>
+  );
+}
+
+/* ── Emotional Depth Section (new) ── */
+function EmotionalDepthSection() {
+  const paragraphs = [
+    "Every memory we've created together is like a photograph printed on the walls of my heart. Some are vivid and bright — the first time you laughed so hard you couldn't breathe, the quiet evening when we watched the sunset without saying a word. Others are softer, like watercolors that have bled into the paper, their edges blurred but their beauty undiminished.",
+    "I carry these memories with me everywhere — not as burdens, but as treasures. They are the proof that something beautiful exists between us, something that transcends the ordinary and touches the extraordinary. When the world feels heavy, I close my eyes and return to these moments, and suddenly everything makes sense again.",
+    "There's a particular kind of magic in remembering. It's not about reliving the past — it's about understanding how the past shaped who we are today. Every shared silence, every burst of laughter, every tear we've wiped from each other's faces has woven itself into the fabric of our story.",
+    "And what a story it is. Not perfect, not scripted, but real and raw and utterly ours. It's a story of two imperfect people who chose each other, again and again, and built something more beautiful than either could have built alone.",
+    "So when I look at you, I don't just see the person standing before me now. I see every version of you I've ever known — the one who made me laugh on our first date, the one who held my hand through the hardest days, and the one who continues to surprise me with their depth and kindness. All of these versions live inside me, and I love every single one of them.",
+  ];
+
+  return (
+    <ParallaxSection speed={0.1}>
+      <div className="max-w-3xl mx-auto space-y-12">
+        <motion.div
+          className="text-center mb-16"
+          initial={{ y: 30, opacity: 0 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+        >
+          <p className="text-[10px] tracking-[0.5em] uppercase mb-4 font-semibold"
+            style={{ color: 'rgb(var(--primary-dim))' }}>
+            Perasaanku
+          </p>
+          <h2 className="text-3xl md:text-4xl font-serif font-light tracking-wide"
+            style={{ color: 'rgb(var(--primary))' }}>
+            The Stories We Keep
+          </h2>
+          <div className="w-16 h-[1px] mx-auto mt-6"
+            style={{ background: `linear-gradient(90deg, transparent, rgba(var(--primary), 0.3), transparent)` }} />
+        </motion.div>
+
+        {paragraphs.map((text, i) => (
           <motion.div
             key={i}
-            initial={{ opacity: 0, y: 40, scale: 0.95 }}
-            whileInView={{ opacity: 1, y: 0, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7, delay: i * 0.15 }}
-            className="relative group"
+            initial={{ y: 40, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true, margin: "-5%" }}
+            transition={{ duration: 0.8, delay: i * 0.08, ease: [0.25, 0.1, 0.25, 1] }}
           >
-            <div className="relative overflow-hidden rounded-lg bg-dark-luxury border border-gold-accent/10 aspect-square">
-              <div className="absolute inset-0 bg-gradient-to-br from-gold-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
-              {photo ? (
-                <img
-                  src={`/${photo}`}
-                  alt={captions[i] || `Foto ${i + 1}`}
-                  loading="lazy"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center text-gold-accent/30 text-sm">
-                  Foto {i + 1}
-                </div>
+            <p className="text-lg md:text-xl leading-[2] font-serif-alt italic text-white/80">
+              {i === 0 && (
+                <span className="text-5xl md:text-6xl font-serif float-left mr-3 mt-1 leading-none"
+                  style={{ color: 'rgb(var(--primary))' }}>
+                  {text.charAt(0)}
+                </span>
               )}
-            </div>
-            {captions[i] && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.15 + 0.3 }}
-                className="text-center text-elegant-white/50 text-xs mt-3 tracking-wide"
-              >
-                {captions[i]}
-              </motion.p>
+              {i === 0 ? text.slice(1) : text}
+            </p>
+            {i < paragraphs.length - 1 && (
+              <div className="flex justify-center mt-10">
+                <div className="w-1.5 h-1.5 rotate-45 border border-white/10" />
+              </div>
             )}
           </motion.div>
         ))}
       </div>
+    </ParallaxSection>
+  );
+}
+
+/* ── Memory Card with premium photo treatment ── */
+function MemoryCard({
+  memory,
+  index,
+}: {
+  memory: NonNullable<LetterConfig['memories']>[number];
+  index: number;
+}) {
+  const isLeft = index % 2 === 0;
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = (y - centerY) / 30;
+    const rotateY = (centerX - x) / 30;
+    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    const card = cardRef.current;
+    if (!card) return;
+    card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+  }, []);
+
+  return (
+    <motion.div
+      className={`flex flex-col ${isLeft ? 'md:flex-row' : 'md:flex-row-reverse'} gap-8 md:gap-14 items-center`}
+      initial={{ opacity: 0, y: 60 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-120px' }}
+      transition={{ duration: 0.9, delay: index * 0.08, ease: [0.25, 0.1, 0.25, 1] }}
+    >
+      {/* Photo with premium treatment */}
+      <div ref={cardRef} className="w-full md:w-1/2 group cursor-pointer" onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} style={{ transition: 'transform 0.25s ease-out' }}>
+        <div className="glass overflow-hidden rounded-glass">
+          <motion.div
+            className="aspect-[4/5] bg-cover bg-center"
+            style={{ backgroundImage: `url(${memory.photo})` }}
+            whileHover={{ scale: 1.04 }}
+            transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+          />
+        </div>
+        {/* Photo glow on hover */}
+        <div
+          className="absolute inset-0 rounded-glass opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+          style={{
+            boxShadow: '0 0 40px rgba(var(--primary), 0.06)',
+          }}
+        />
+      </div>
+
+      {/* Text with premium typography */}
+      <div className="w-full md:w-1/2 space-y-4">
+        {memory.date && (
+          <motion.p
+            className="text-[10px] tracking-[0.35em] uppercase"
+            style={{ color: 'rgb(var(--primary-dim))' }}
+            initial={{ opacity: 0, x: isLeft ? -20 : 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            {memory.date}
+          </motion.p>
+        )}
+        {memory.title && (
+          <motion.h3
+            className="text-2xl md:text-3xl lg:text-4xl font-serif leading-tight"
+            style={{ color: 'rgb(var(--primary))' }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            {memory.title}
+          </motion.h3>
+        )}
+        {memory.description && (
+          <motion.p
+            className="text-sm md:text-base leading-[1.8] font-serif-alt"
+            style={{ color: 'rgb(var(--text-muted))' }}
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            {memory.description}
+          </motion.p>
+        )}
+        {/* Subtle accent line */}
+        <motion.div
+          className="h-px w-10"
+          style={{ backgroundColor: 'rgba(var(--primary), 0.2)' }}
+          initial={{ scaleX: 0 }}
+          whileInView={{ scaleX: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+        />
+      </div>
+    </motion.div>
+  );
+}
+
+/* ── Memory Timeline Divider ── */
+function TimelineDivider({ number }: { number: number }) {
+  return (
+    <div className="flex items-center justify-center gap-6 py-12">
+      <motion.div
+        className="h-px flex-1 max-w-16"
+        style={{ backgroundColor: 'rgba(var(--primary), 0.12)' }}
+        initial={{ scaleX: 0 }}
+        whileInView={{ scaleX: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+      />
+      <motion.span
+        className="text-[9px] tracking-[0.5em] uppercase"
+        style={{ color: 'rgb(var(--primary-dim))' }}
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+      >
+        {number}
+      </motion.span>
+      <motion.div
+        className="h-px flex-1 max-w-16"
+        style={{ backgroundColor: 'rgba(var(--primary), 0.12)' }}
+        initial={{ scaleX: 0 }}
+        whileInView={{ scaleX: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+      />
+    </div>
+  );
+}
+
+/* ── Section Wrapper ── */
+function Section({
+  children,
+  className = '',
+  fullScreen = false,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  fullScreen?: boolean;
+}) {
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-80px' }}
+      transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+      className={`relative px-5 py-20 md:py-28 ${fullScreen ? 'min-h-screen flex flex-col justify-center' : ''} ${className}`}
+    >
+      {/* Ambient glow */}
+      <div
+        className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2
+                     w-[500px] h-[500px] rounded-full opacity-[0.04]"
+        style={{
+          background: 'radial-gradient(circle, rgb(var(--glow-color)) 0%, transparent 70%)',
+        }}
+      />
+      <div className="relative z-10 max-w-4xl mx-auto w-full">
+        {children}
+      </div>
     </motion.section>
   );
 }
 
-const MessageSection = memo(function MessageSection({ section }: { section: Section }) {
+/* ── Home Page ── */
+export default function Home() {
+  const [config, setConfig] = useState<LetterConfig | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [showLoading, setShowLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const res = await fetch('/api/config');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data: LetterConfig = await res.json();
+        setConfig(data);
+      } catch {
+        // Use default config
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchConfig();
+  }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      const timer = setTimeout(() => setShowLoading(false), 1800);
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
+
+  const theme = config?.theme || 'ultra-signature';
+  const memories = config?.memories || [];
+  const message = config?.message || [];
+  const hasMemories = memories.length > 0;
+  const hasMessage = message.length > 0;
+
+  if (loading || showLoading) {
+    return (
+      <BaseLayout theme={theme} ultra>
+        <LoadingScreen />
+      </BaseLayout>
+    );
+  }
+
   return (
-    <motion.section
-      variants={sectionVariants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-80px" }}
-      className="flex items-center justify-center min-h-screen px-6 md:px-20"
-    >
-      <div className="max-w-xl text-center relative">
-        <div className="absolute -inset-20 bg-gold-accent/5 rounded-full blur-[100px] pointer-events-none" />
-        <div className="relative z-10">
+    <BaseLayout theme={theme} ultra className="relative">
+      <ScrollProgress />
+      <ConstellationField count={16} />
+      <GoldParticleField count={12} />
+
+      <MusicPlayer
+        audioSrc={config?.audioSrc}
+        autoPlay={config?.autoplayAudio}
+      />
+
+      {/* Hero with parallax + 3D */}
+      <Section fullScreen>
+        <ParallaxSection speed={0.1}>
+          <div className="text-center max-w-3xl mx-auto">
+            <motion.p
+              className="text-[10px] tracking-[0.6em] uppercase mb-8"
+              style={{ color: 'rgb(var(--primary-dim))' }}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.8 }}
+            >
+              In Memory Of
+            </motion.p>
+
+            <motion.h1
+              className="text-5xl md:text-7xl lg:text-[6.5rem] font-serif mb-8 leading-[1.1] tracking-tight"
+              style={{ color: 'rgb(var(--primary))' }}
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }}
+            >
+              {config?.recipientName || 'Every Moment'}
+            </motion.h1>
+
+            <motion.div
+              className="w-12 h-px mx-auto mb-6"
+              style={{ backgroundColor: 'rgb(var(--primary))' }}
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ delay: 1, duration: 0.8 }}
+            />
+
+            <motion.p
+              className="text-sm md:text-base max-w-lg mx-auto leading-relaxed font-serif-alt italic"
+              style={{ color: 'rgb(var(--text-muted))' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.2, duration: 1 }}
+            >
+              Some memories fade. Others leave their shape in us forever.
+            </motion.p>
+          </div>
+        </ParallaxSection>
+      </Section>
+
+      {/* Memories timeline */}
+      {hasMemories && (
+        <>
+          <TimelineDivider number={1} />
+          <Section>
+            <div className="space-y-28 md:space-y-36">
+              {memories.map((memory, i) => (
+                <MemoryCard key={i} memory={memory} index={i} />
+              ))}
+            </div>
+          </Section>
+        </>
+      )}
+
+      {/* Emotional Depth */}
+      <TimelineDivider number={2} />
+      <Section>
+        <EmotionalDepthSection />
+      </Section>
+
+      {/* Letter message */}
+      {hasMessage && (
+        <>
+          <TimelineDivider number={3} />
+          <Section>
+            <ParallaxSection speed={0.1}>
+              <div className="glass p-8 md:p-16 max-w-3xl mx-auto space-y-8">
+                {message.map((paragraph, i) => (
+                  <motion.p
+                    key={i}
+                    className="text-lg md:text-xl leading-[1.8] font-serif-alt italic"
+                    style={{ color: 'rgb(var(--text))' }}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.15, duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+                  >
+                    {i === 0 && (
+                      <span className="text-5xl md:text-6xl font-serif float-left mr-3 mt-1 leading-none" style={{ color: 'rgb(var(--primary))' }}>
+                        {paragraph.charAt(0)}
+                      </span>
+                    )}
+                    {i === 0 ? paragraph.slice(1) : paragraph}
+                  </motion.p>
+                ))}
+              </div>
+            </ParallaxSection>
+          </Section>
+        </>
+      )}
+
+      {/* Closing */}
+      <Section>
+        <div className="text-center">
+          <motion.div
+            className="mb-10"
+            initial={{ scale: 0, opacity: 0 }}
+            whileInView={{ scale: 1, opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1, ease: [0.25, 0.1, 0.25, 1] }}
+          >
+            <svg
+              className="w-8 h-8 mx-auto"
+              style={{ color: 'rgb(var(--primary))' }}
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+            </svg>
+          </motion.div>
+
           <motion.p
+            className="text-xs tracking-[0.4em] uppercase mb-6"
+            style={{ color: 'rgb(var(--primary-dim))' }}
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-gold-accent/60 tracking-[0.25em] uppercase text-xs mb-8"
           >
-            {section.title}
+            Forever Yours
           </motion.p>
-          <motion.div
-            initial={{ scaleX: 0 }}
-            whileInView={{ scaleX: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="h-px w-16 mx-auto mb-10 bg-gold-accent/40"
-          />
+
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            className="text-3xl md:text-4xl lg:text-5xl font-serif"
+            style={{ color: 'rgb(var(--primary))' }}
+            initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.9, delay: 0.5 }}
-            className="text-xl md:text-2xl font-light text-elegant-white/80 leading-relaxed"
+            transition={{ delay: 0.3, duration: 0.8 }}
           >
-            {section.text}
+            {config?.senderName || 'Always'}
           </motion.p>
+
           <motion.div
+            className="mt-10 h-px w-16 mx-auto"
+            style={{ backgroundColor: 'rgba(var(--primary), 0.3)' }}
             initial={{ scaleX: 0 }}
             whileInView={{ scaleX: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-            className="h-px w-16 mx-auto mt-10 bg-gold-accent/40"
+            transition={{ delay: 0.6, duration: 0.8 }}
           />
         </div>
-      </div>
-    </motion.section>
-  );
-});
-
-const ClosingSection = memo(function ClosingSection({
-  section,
-  closing,
-  sender
-}: {
-  section: Section;
-  closing: string;
-  sender: string;
-}) {
-  return (
-    <motion.section
-      variants={scaleVariants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-100px" }}
-      className="flex items-center justify-center min-h-screen px-6"
-    >
-      <div className="text-center">
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="text-4xl md:text-6xl font-light text-elegant-white mb-6"
-        >
-          {section.title}
-        </motion.p>
-        <motion.div
-          initial={{ scaleX: 0 }}
-          whileInView={{ scaleX: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1.2, delay: 0.6 }}
-          className="h-px w-40 mx-auto mb-10 bg-gradient-to-r from-transparent via-gold-accent to-transparent"
-        />
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.9 }}
-          className="text-elegant-white/60 text-sm tracking-wide"
-        >
-          {closing}
-        </motion.p>
-      </div>
-    </motion.section>
-  );
-});
-
-export default function Home() {
-  const { config, loading, error } = useConfigLoader<Config>("/config.json");
-  const [playing, setPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  useEffect(() => {
-    if (config?.music) {
-      audioRef.current = new Audio(`/${config.music}`);
-      audioRef.current.loop = true;
-      audioRef.current.volume = 0.3;
-    }
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = '';
-      }
-    };
-  }, [config?.music]);
-
-  const togglePlay = () => {
-    if (!audioRef.current) return;
-    if (!audioRef.current.paused) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play().catch(() => {});
-    }
-    setPlaying((prev) => !prev);
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-deep-black">
-        <motion.div
-          animate={{ opacity: [0.3, 1, 0.3] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-          className="w-2 h-2 rounded-full bg-gold-accent"
-        />
-      </div>
-    );
-  }
-
-  if (error || !config) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-deep-black">
-        <p className="text-elegant-white/50">Gagal memuat konfigurasi</p>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <Head>
-        <title>{config.title} | EverLetter</title>
-        <meta name="description" content={`Surat untuk ${config.recipient} dari ${config.sender}`} />
-      </Head>
-
-      <main className="bg-deep-black min-h-screen">
-        <AnimatePresence>
-          {config.sections.map((section, i) => {
-            switch (section.type) {
-              case "hero":
-                return <HeroSection key={i} section={section} />;
-              case "story":
-                return <StorySection key={i} section={section} />;
-              case "photos":
-                return (
-                  <PhotosSection
-                    key={i}
-                    section={section}
-                    photos={config.photos}
-                    captions={config.captions}
-                  />
-                );
-              case "message":
-                return <MessageSection key={i} section={section} />;
-              case "closing":
-                return (
-                  <ClosingSection
-                    key={i}
-                    section={section}
-                    closing={config.closing}
-                    sender={config.sender}
-                  />
-                );
-              default:
-                return null;
-            }
-          })}
-        </AnimatePresence>
-
-        {/* WhatsApp CTA */}
-        <section className="py-12 px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="max-w-md mx-auto text-center"
-          >
-            <a
-              href="https://wa.me/6282320114535?text=Halo,%20saya%20ingin%20memesan%20EverLetter"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-3 bg-green-500 text-white px-8 py-4 rounded-full font-medium hover:bg-green-600 transition-colors shadow-lg min-h-[48px]"
-            >
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-              </svg>
-              Pesan via WhatsApp
-            </a>
-          </motion.div>
-        </section>
-
-        {/* Share Button */}
-        <button
-          onClick={() => {
-            if (navigator.share) {
-              navigator.share({
-                title: 'EverLetter - Signature Memory',
-                text: 'Lihat hadiah digital indah ini!',
-                url: window.location.href,
-              });
-            } else {
-              navigator.clipboard.writeText(window.location.href);
-              showToast('Link disalin ke clipboard!');
-            }
-          }}
-          className="fixed bottom-24 right-8 z-50 bg-gold-accent/20 backdrop-blur-sm text-gold-accent px-4 py-3 rounded-full shadow-lg hover:bg-gold-accent/30 transition-colors flex items-center gap-2 border border-gold-accent/30"
-          aria-label="Bagikan"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-          </svg>
-        </button>
-
-        {/* Music Button */}
-        {config.music && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 1.5, duration: 0.5 }}
-            onClick={togglePlay}
-            aria-label={playing ? 'Jeda musik' : 'Putar musik'}
-            className="fixed bottom-8 right-8 z-50 w-12 h-12 rounded-full bg-gold-accent/20 border border-gold-accent/30 flex items-center justify-center backdrop-blur-sm hover:bg-gold-accent/30 transition-colors min-h-[48px]"
-            title={config.musicTitle}
-          >
-            <span className="text-gold-accent text-lg">{playing ? "⏸" : "▶"}</span>
-          </motion.button>
-        )}
-      </main>
-    </>
+      </Section>
+    </BaseLayout>
   );
 }
