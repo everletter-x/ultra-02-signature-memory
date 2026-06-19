@@ -2,47 +2,53 @@
   "recipient": "Sena",
   "sender": "Aku",
   "title": "Signature Memory: Kenangan Abadi Sena",
-  "message": "Ini bukan sekadar hadiah, tapi monumen cinta kita yang tak lekang oleh waktu.",
-  "photos": [
-    "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=800&q=80",
-    "https://images.unsplash.com/photo-1496440737103-cd596325d314?w=800&q=80",
-    "https://images.unsplash.com/photo-1515041219749-89347f83291a?w=800&q=80",
-    "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&q=80"
+  "message": [
+    "Dalam sinema kehidupan kita, kamu adalah bintang utama yang tak pernah padam.",
+    "Setiap memori yang kita ciptakan adalah bintang yang menerangi langit malam kehidupanku."
   ],
-  "theme": "gold-accent",
+  "memories": [
+    {
+      "title": "Pertemuan Pertama",
+      "date": "Awal Semua Cerita",
+      "description": "Di antara keramaian dunia, takdir memilih kita untuk bersama. Seperti dua bintang yang berputar dalam orbit yang sama, kita ditarik oleh kekuatan yang melampaui pemahaman. Sejak saat itu, hidupku tak pernah sama lagi.",
+      "photo": "photo-1.jpg"
+    },
+    {
+      "title": "Momen Bahagia",
+      "date": "Tawa yang Tak Terlupakan",
+      "description": "Kamu tertawa begitu lepas, begitu tulus, begitu indah — sampai-sampai dunia di sekitar kita seolah ikut tertawa bersama. Di momen itu, aku tahu bahwa kebahagiaan sejati bukan tentang memiliki segalanya, tapi tentang memiliki seseorang yang membuat segalanya terasa cukup.",
+      "photo": "photo-2.jpg"
+    },
+    {
+      "title": "Janji Setia",
+      "date": "Di Bawah Langit Berbintang",
+      "description": "Di bawah langit yang sama, dengan bintang-bintang yang menjadi saksi, kita berjanji untuk selalu bersama. Bukan janji yang mudah diucapkan, tapi janji yang kita pegang teguh dengan segenap hati dan jiwa.",
+      "photo": "photo-3.jpg"
+    },
+    {
+      "title": "Cinta Abadi",
+      "date": "Untuk Selamanya",
+      "description": "Cinta kita bukan sekadar perasaan yang datang dan pergi. Ia adalah akar yang tertanam dalam, batu karang yang tak tergoyahkan, dan bintang yang tak pernah padam. Dan aku berjanji, cinta ini akan terus bersinar, hari ini, besok, dan selamanya.",
+      "photo": "photo-4.jpg"
+    }
+  ],
+  "audioSrc": "music/cinematic-strings.mp3",
+  "autoplayAudio": false,
+  "theme": "ultra-signature",
+  "photos": [
+    "photo-1.jpg",
+    "photo-2.jpg",
+    "photo-3.jpg",
+    "photo-4.jpg"
+  ],
   "music": "music/cinematic-strings.mp3",
   "musicTitle": "Cinematic Strings",
   "template": "ultra-02",
-  "sections": [
-    {
-      "type": "hero",
-      "title": "Untuk Sena, Segalanya",
-      "subtitle": "Cerita cinta kita dimulai dari satu tatapan mata"
-    },
-    {
-      "type": "story",
-      "title": "Perjalanan Kita",
-      "text": "Dari pertemuan pertama hingga hari ini, setiap langkah yang kita ambil bersama adalah bukti bahwa cinta sejati itu nyata."
-    },
-    {
-      "type": "photos",
-      "title": "Momen-Momen Berharga"
-    },
-    {
-      "type": "message",
-      "title": "Janji Dari Hati",
-      "text": "Aku berjanji akan terus mencintaimu dengan cara yang sama seperti pertama kali aku jatuh cinta padamu."
-    },
-    {
-      "type": "closing",
-      "title": "Cinta Kita, Abadi"
-    }
-  ],
   "captions": [
-    "Momen pertama kita bertemu",
-    "Senyummu yang selalu kurindukan",
-    "Saat kita tertawa bersama",
-    "Cinta kita, abadi selamanya"
+    "Momen pertama kita bertemu — waktu seolah berhenti",
+    "Senyummu yang selalu kurindukan dalam setiap mimpi",
+    "Saat kita tertawa bersama tanpa peduli dunia",
+    "Cinta kita, abadi selamanya seperti bintang"
   ],
-  "closing": "Dengan segala cinta yang ku miliki, untukmu selamanya, Sena."
+  "closing": "Dengan segala cinta yang ku miliki, untukmu selamanya, Sena. Semoga memori-memori ini menjadi bukti abadi bahwa cinta kita nyata, dan akan terus bersinar meskipun waktu terus berjalan."
 }
