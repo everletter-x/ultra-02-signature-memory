@@ -222,11 +222,11 @@ function LoadingScreen() {
 /* ── Emotional Depth Section (new) ── */
 function EmotionalDepthSection() {
   const paragraphs = [
-    "Every memory we've created together is like a photograph printed on the walls of my heart. Some are vivid and bright — the first time you laughed so hard you couldn't breathe, the quiet evening when we watched the sunset without saying a word. Others are softer, like watercolors that have bled into the paper, their edges blurred but their beauty undiminished.",
-    "I carry these memories with me everywhere — not as burdens, but as treasures. They are the proof that something beautiful exists between us, something that transcends the ordinary and touches the extraordinary. When the world feels heavy, I close my eyes and return to these moments, and suddenly everything makes sense again.",
-    "There's a particular kind of magic in remembering. It's not about reliving the past — it's about understanding how the past shaped who we are today. Every shared silence, every burst of laughter, every tear we've wiped from each other's faces has woven itself into the fabric of our story.",
-    "And what a story it is. Not perfect, not scripted, but real and raw and utterly ours. It's a story of two imperfect people who chose each other, again and again, and built something more beautiful than either could have built alone.",
-    "So when I look at you, I don't just see the person standing before me now. I see every version of you I've ever known — the one who made me laugh on our first date, the one who held my hand through the hardest days, and the one who continues to surprise me with their depth and kindness. All of these versions live inside me, and I love every single one of them.",
+    "Setiap kenangan yang kita ciptakan bersama seperti foto yang tercetak di dinding hatiku. Beberapa terang dan cerah — pertama kali kau tertawa begitu keras hingga tak bisa bernapas, malam sunyi ketika kita menyaksikan matahari terbenam tanpa mengucap sepatah kata. Yang lain lebih lembut, seperti aquarel yang meresap ke kertas, tepinya kabur tapi keindahannya tak berkurang.",
+    "Aku membawa kenangan-kenangan ini ke mana pun aku pergi — bukan sebagai beban, tapi sebagai harta. Ini adalah bukti bahwa sesuatu yang indah ada di antara kita, sesuatu yang melampaui yang biasa dan menyentuh luar biasa. Ketika dunia terasa berat, aku memejamkan mata dan kembali ke momen-momen ini, dan tiba-tiba semuanya masuk akal lagi.",
+    "Ada keajaiban khusus dalam mengenang. Ini bukan tentang menghidupkan kembali masa lalu — ini tentang memahami bagaimana masa lalu membentuk siapa kita hari ini. Setiap keheningan bersama, setiap ledakan tita, setiap air mata yang kita usap dari wajah satu sama lain telah menyatu menjadi kain dari cerita kita.",
+    "Dan betapa indahnya cerita itu. Tidak sempurna, tidak terskenario, tapi nyata dan mentah dan sepenuhnya milik kita. Ini adalah cerita dua orang tidak sempurna yang memilih satu sama lain, lagi dan lagi, dan membangun sesuatu yang lebih indah dari yang bisa dibangun sendiri.",
+    "Jadi ketika aku menatapmu, aku tidak hanya melihat orang yang berdiri di depanku sekarang. Aku melihat setiap versimu yang pernah kukenal — yang membuatku tertawa di kencan pertama, yang menggenggam tanganku melewati hari-hari terberat, dan yang terus mengejutkanku dengan kedalaman dan kebaikannya. Semua versi ini hidup di dalam diriku, dan aku mencintai setiap satu dari mereka.",
   ];
 
   return (
@@ -245,7 +245,7 @@ function EmotionalDepthSection() {
           </p>
           <h2 className="text-3xl md:text-4xl font-serif font-light tracking-wide"
             style={{ color: 'rgb(var(--primary))' }}>
-            The Stories We Keep
+            Cerita-Cerita Yang Kita Simpan
           </h2>
           <div className="w-16 h-[1px] mx-auto mt-6"
             style={{ background: `linear-gradient(90deg, transparent, rgba(var(--primary), 0.3), transparent)` }} />
@@ -521,7 +521,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
             >
-              In Memory Of
+              Dalam Kenangan
             </motion.p>
 
             <motion.h1
@@ -549,7 +549,7 @@ export default function Home() {
               animate={{ opacity: 1 }}
               transition={{ delay: 1.2, duration: 1 }}
             >
-              Some memories fade. Others leave their shape in us forever.
+              Beberapa memori memudar. Yang lain meninggalkan bentuknya dalam diri kita selamanya.
             </motion.p>
           </div>
         </ParallaxSection>
@@ -633,7 +633,7 @@ export default function Home() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
           >
-            Forever Yours
+            Selamanya Milikmu
           </motion.p>
 
           <motion.p
