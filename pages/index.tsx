@@ -6,6 +6,8 @@ import { MusicPlayer } from '../shared/MusicPlayer';
 /* ── Config types ── */
 interface LetterConfig {
   theme?: string;
+  recipient?: string;
+  sender?: string;
   recipientName?: string;
   senderName?: string;
   memories?: {
@@ -531,7 +533,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }}
             >
-              {config?.recipientName || 'Every Moment'}
+              {config?.recipientName || config?.recipient || 'Every Moment'}
             </motion.h1>
 
             <motion.div
@@ -644,7 +646,7 @@ export default function Home() {
             viewport={{ once: true }}
             transition={{ delay: 0.3, duration: 0.8 }}
           >
-            {config?.senderName || 'Always'}
+            {config?.senderName || config?.sender || 'Always'}
           </motion.p>
 
           <motion.div
