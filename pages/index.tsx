@@ -17,6 +17,7 @@ interface LetterConfig {
     photo?: string;
   }[];
   message?: string[];
+  photos?: { src: string; alt: string; caption?: string }[];
   audioSrc?: string;
   autoplayAudio?: boolean;
 }
@@ -282,6 +283,47 @@ function EmotionalDepthSection() {
   );
 }
 
+/* ── Interactive Timeline Line ── */
+function TimelineLine({ memoriesCount }: { memoriesCount: number }) {
+  const { scrollYProgress } = useScroll();
+  const lineLength = memoriesCount * 280;
+  const drawProgress = useTransform(scrollYProgress, [0.15, 0.85], [0, lineLength]);
+
+  return (
+    <div className="absolute left-1/2 -translate-x-px top-0 bottom-0 z-0 pointer-events-none">
+      {/* Background line */}
+      <div className="absolute inset-0 w-[1px]" style={{ backgroundColor: 'rgba(var(--primary), 0.06)' }} />
+      {/* Drawing line */}
+      <motion.div
+        className="absolute top-0 left-0 w-[1px]"
+        style={{
+          height: useTransform(drawProgress, [0, lineLength], [0, '100%']),
+          background: 'linear-gradient(180deg, rgb(var(--primary)), rgba(var(--primary), 0.1))',
+        }}
+      />
+      {/* Nodes at each memory */}
+      {Array.from({ length: memoriesCount }).map((_, i) => {
+        const nodeProgress = (i + 0.5) / memoriesCount;
+        const nodeScroll = useTransform(scrollYProgress, [0.15, 0.85], [0, 1]);
+        const nodeVisible = useTransform(nodeScroll, [nodeProgress - 0.05, nodeProgress], [0, 1]);
+        return (
+          <motion.div
+            key={i}
+            className="absolute left-1/2 -translate-x-1/2 w-3 h-3 rounded-full"
+            style={{
+              top: `${(i + 0.5) / memoriesCount * 100}%`,
+              backgroundColor: 'rgb(var(--primary))',
+              boxShadow: '0 0 8px rgba(var(--primary), 0.3)',
+              opacity: nodeVisible,
+              scale: nodeVisible,
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 /* ── Memory Card with premium photo treatment ── */
 function MemoryCard({
   memory,
@@ -510,6 +552,7 @@ export default function Home() {
       <MusicPlayer
         audioSrc={config?.audioSrc}
         autoPlay={config?.autoplayAudio}
+        photos={config?.photos}
       />
 
       {/* Hero with parallax + 3D */}
@@ -562,10 +605,13 @@ export default function Home() {
         <>
           <TimelineDivider number={1} />
           <Section>
-            <div className="space-y-28 md:space-y-36">
-              {memories.map((memory, i) => (
-                <MemoryCard key={i} memory={memory} index={i} />
-              ))}
+            <div className="relative">
+              <TimelineLine memoriesCount={memories.length} />
+              <div className="space-y-28 md:space-y-36 relative z-10">
+                {memories.map((memory, i) => (
+                  <MemoryCard key={i} memory={memory} index={i} />
+                ))}
+              </div>
             </div>
           </Section>
         </>
